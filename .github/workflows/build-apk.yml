@@ -25,16 +25,8 @@ jobs:
         with:
           python-version: '3.11'
 
-      # Cache Buildozer and Android toolchains to reduce repeated downloads.
-      - name: Cache Buildozer and Android toolchains
-        uses: actions/cache@v4
-        with:
-          path: |
-            .buildozer
-            ~/.buildozer
-          key: buildozer-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
-          restore-keys: |
-            buildozer-${{ runner.os }}-
+      - name: Clean stale Buildozer cache
+        run: rm -rf .buildozer
 
       - name: Install dependencies
         run: |
@@ -43,26 +35,26 @@ jobs:
 
       - name: Install Buildozer
         run: |
-          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install --upgrade "pip<24" setuptools wheel
           python -m pip install buildozer cython==0.29.36
 
-      - name: Build APK (retry transient download failures)
+      - name: Build APK
         env:
           BUILDOZER_WARN_ON_ROOT: '0'
         shell: bash
         run: |
+          set -e
           for attempt in 1 2 3; do
             echo "Build attempt ${attempt}/3"
             if buildozer android debug; then
               exit 0
             fi
             if [ "$attempt" -lt 3 ]; then
-              delay=$((attempt * 20))
-              echo "Build failed; retrying in ${delay}s..."
-              sleep "$delay"
+              echo "Build failed; retrying in 20s..."
+              sleep 20
             fi
           done
-          echo "Build failed after 3 attempts. Review the build error above."
+          echo "Build failed after 3 attempts."
           exit 1
 
       - name: Upload APK
