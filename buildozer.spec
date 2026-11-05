@@ -7,7 +7,9 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,txt,md
 version = 1.0.0
 requirements = python3==3.11.5,kivy,qrcode,pillow
-p4a.branch = develop
+# Use the stable python-for-android branch to avoid the hostpython3 / python3 version mismatch
+# that caused the GitHub Actions build to fail.
+p4a.branch = master
 orientation = portrait
 fullscreen = 0
 
